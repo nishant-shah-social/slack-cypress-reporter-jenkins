@@ -79,6 +79,7 @@ export const slackRunner = async ({
       customUrl,
     });
     const reportHTMLUrl = await buildHTMLReportURL({
+      ciProvider,
       reportDir,
       artefactUrl,
     });
@@ -649,14 +650,20 @@ const getScreenshotLinks = async ({
 };
 
 const buildHTMLReportURL = async ({
+  ciProvider,
   reportDir,
   artefactUrl,
 }: {
+  ciProvider: string;
   reportDir: string;
   artefactUrl: string;
 }) => {
   const reportHTMLFilename = await getHTMLReportFilename(reportDir);
-  return buildUrl(artefactUrl, reportDir, reportHTMLFilename);
+  if(ciProvider === "jenkins") {
+    return process.env.E2E_REPORT_URL;
+  } else {
+    return buildUrl(artefactUrl, reportDir, reportHTMLFilename);
+  }
 };
 const getArtefactUrl = async ({
   vcsRoot,
@@ -671,7 +678,11 @@ const getArtefactUrl = async ({
 }) => {
   if (customUrl) {
     return customUrl;
-  } else if (ciProvider === "circleci") {
+  } 
+  else if (ciProvider === "jenkins") {
+    return process.env.BUILD_URL+"artifact/";
+  }
+  else if (ciProvider === "circleci") {
     switch (vcsRoot) {
       case "github":
         return `https://${ciEnvVars.CI_BUILD_NUM}-${ciEnvVars.CIRCLE_PROJECT_ID}-gh.circle-artifacts.com/0/`;
