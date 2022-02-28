@@ -55,6 +55,7 @@ interface ReportStatistics {
   totalTests: any;
   totalPasses: any;
   totalFailures: any;
+  totalPending: any;
   totalDuration: any;
   reportFile: string[];
   status: string;
@@ -78,11 +79,12 @@ export const slackRunner = async ({
       ciProvider,
       customUrl,
     });
-    const reportHTMLUrl = await buildHTMLReportURL({
-      ciProvider,
-      reportDir,
-      artefactUrl,
-    });
+    // const reportHTMLUrl = await buildHTMLReportURL({
+    //   ciProvider,
+    //   reportDir,
+    //   artefactUrl,
+    // });
+    const reportHTMLUrl = process.env.E2E_REPORT_URL ? process.env.E2E_REPORT_URL : "";
     const videoAttachmentsSlack = await getVideoLinks({
       artefactUrl,
       videosDir: videoDir,
@@ -381,7 +383,7 @@ const attachmentReports = async ({
       return {
         color: "#36a64f",
         fallback: `Report available at ${reportHTMLUrl}`,
-        text: `${branchText}${jobText}${envSut}${customText}Total Passed:  ${reportStatistics.totalPasses}`,
+        text: `${branchText}${jobText}${envSut}${customText}Total Passed:  ${reportStatistics.totalPasses}\nTotal Skipped: ${reportStatistics.totalPending} `,
         actions: [
           {
             type: "button",
@@ -403,7 +405,7 @@ const attachmentReports = async ({
         color: "#ff0000",
         fallback: `Report available at ${reportHTMLUrl}`,
         title: `Total Failed: ${reportStatistics.totalFailures}`,
-        text: `${branchText}${jobText}${envSut}${customText}Total Tests: ${reportStatistics.totalTests}\nTotal Passed:  ${reportStatistics.totalPasses} `,
+        text: `${branchText}${jobText}${envSut}${customText}Total Tests: ${reportStatistics.totalTests}\nTotal Passed:  ${reportStatistics.totalPasses}\nTotal Skipped: ${reportStatistics.totalPending} `,
         actions: [
           {
             type: "button",
@@ -520,6 +522,7 @@ const getTestReportStatus = async (reportDir: string) => {
       totalPasses: 0,
       totalFailures: 0,
       totalDuration: 0,
+      totalPending: 0,
       reportFile: [],
       status: "error",
     };
@@ -539,6 +542,8 @@ const getTestReportStatus = async (reportDir: string) => {
   const totalPasses = reportStats.passes;
   const totalFailures = reportStats.failures;
   const totalDuration = reportStats.duration;
+  const totalPending = reportStats.pending;
+
   if (totalTests === undefined || totalTests === 0) {
     reportStats.status = "error";
   } else if (totalFailures > 0 || totalPasses === 0) {
@@ -552,6 +557,7 @@ const getTestReportStatus = async (reportDir: string) => {
     totalTests,
     totalPasses,
     totalFailures,
+    totalPending,
     totalDuration,
     reportFile,
     status: reportStats.status,
@@ -658,10 +664,10 @@ const buildHTMLReportURL = async ({
   reportDir: string;
   artefactUrl: string;
 }) => {
-  const reportHTMLFilename = await getHTMLReportFilename(reportDir);
   if(ciProvider === "jenkins") {
     return process.env.E2E_REPORT_URL;
   } else {
+    const reportHTMLFilename = await getHTMLReportFilename(reportDir);
     return buildUrl(artefactUrl, reportDir, reportHTMLFilename);
   }
 };
@@ -680,7 +686,7 @@ const getArtefactUrl = async ({
     return customUrl;
   } 
   else if (ciProvider === "jenkins") {
-    return process.env.BUILD_URL+"artifact/";
+    return process.env.BUILD_URL+"artifact/AutomationTests/UIAuto";
   }
   else if (ciProvider === "circleci") {
     switch (vcsRoot) {
