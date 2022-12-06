@@ -57,6 +57,8 @@ interface ReportStatistics {
   totalFailures: any;
   totalPending: any;
   totalDuration: any;
+  startTime: any;
+  endTime: any;
   reportFile: string[];
   status: string;
 }
@@ -378,12 +380,22 @@ const attachmentReports = async ({
   } else {
     customText = `${customText}\n`;
   }
+
+
+  var duration = new Date(reportStatistics.endTime).getTime() - new Date(reportStatistics.startTime).getTime();
+  var hourDiff = Math.round(duration / 3600 / 1000);
+  var hourRemainder = duration % 3600000;
+  var minDiff = Math.round(hourRemainder / 60 / 1000);
+  var minRemainder = hourRemainder % 60000;
+  var secDiff = Math.round(minRemainder / 1000);
+  var hourDiffInFormat = (hourDiff == 0) ? "" : hourDiff+":";
+
   switch (reportStatistics.status) {
     case "passed": {
       return {
         color: "#36a64f",
         fallback: `Report available at ${reportHTMLUrl}`,
-        text: `${branchText}${jobText}${envSut}${customText}Total Passed:  ${reportStatistics.totalPasses}\nTotal Skipped: ${reportStatistics.totalPending} `,
+        text: `${branchText}${jobText}${envSut}${customText}Total Passed:  ${reportStatistics.totalPasses}\nTotal Skipped: ${reportStatistics.totalPending}\nDuration: ${hourDiffInFormat}${minDiff}:${secDiff} `,
         actions: [
           {
             type: "button",
@@ -405,7 +417,7 @@ const attachmentReports = async ({
         color: "#ff0000",
         fallback: `Report available at ${reportHTMLUrl}`,
         title: `Total Failed: ${reportStatistics.totalFailures}`,
-        text: `${branchText}${jobText}${envSut}${customText}Total Tests: ${reportStatistics.totalTests}\nTotal Passed:  ${reportStatistics.totalPasses}\nTotal Skipped: ${reportStatistics.totalPending} `,
+        text: `${branchText}${jobText}${envSut}${customText}Total Tests: ${reportStatistics.totalTests}\nTotal Passed:  ${reportStatistics.totalPasses}\nTotal Skipped: ${reportStatistics.totalPending}\nDuration: ${hourDiffInFormat}${minDiff}:${secDiff} `,
         actions: [
           {
             type: "button",
@@ -426,7 +438,7 @@ const attachmentReports = async ({
       return {
         color: "#ff0000",
         fallback: `Build Log available at ${ciEnvVars.CI_BUILD_URL}`,
-        text: `${branchText}${jobText}${envSut}${customText}Total Passed:  ${reportStatistics.totalPasses} `,
+        text: `${branchText}${jobText}${envSut}${customText}Total Passed:  ${reportStatistics.totalPasses}\nDuration: ${hourDiffInFormat}${minDiff}:${secDiff} `,
         actions: [
           {
             type: "button",
@@ -523,6 +535,8 @@ const getTestReportStatus = async (reportDir: string) => {
       totalFailures: 0,
       totalDuration: 0,
       totalPending: 0,
+      startTime: "2022-03-08T00:00:0.000Z",
+      endTime: "2022-03-08T00:00:0.000Z",
       reportFile: [],
       status: "error",
     };
@@ -541,6 +555,8 @@ const getTestReportStatus = async (reportDir: string) => {
   const totalTests = reportStats.tests;
   const totalPasses = reportStats.passes;
   const totalFailures = reportStats.failures;
+  const startTime = reportStats.start;
+  const endTime = reportStats.end;
   const totalDuration = reportStats.duration;
   const totalPending = reportStats.pending;
 
@@ -559,6 +575,8 @@ const getTestReportStatus = async (reportDir: string) => {
     totalFailures,
     totalPending,
     totalDuration,
+    startTime,
+    endTime,
     reportFile,
     status: reportStats.status,
   };
