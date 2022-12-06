@@ -789,7 +789,7 @@ const resolveCIProvider = async (ciProvider?: string): Promise<CiEnvVars> => {
           (CI_BUILD_URL = process.env.BUILD_URL),
           (CI_BUILD_NUM = process.env.BUILD_ID),
           (CI_PULL_REQUEST = process.env.CHANGE_ID),
-          (CI_PROJECT_REPONAME = arr[1]),
+          (CI_PROJECT_REPONAME = process.env.APP_NAME),
           (CI_PROJECT_USERNAME = arr[0]);
       }
       break;
