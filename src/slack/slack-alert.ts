@@ -45,6 +45,7 @@ export interface CiEnvVars {
   CI_BUILD_NUM: string | undefined;
   CI_PULL_REQUEST: string | undefined;
   CI_PROJECT_REPONAME: string | undefined;
+  CI_PROJECT_ENVIRONMENT: string | undefined;
   CI_PROJECT_USERNAME: string | undefined;
   JOB_NAME: string | undefined;
   CIRCLE_PROJECT_ID: string | undefined;
@@ -326,7 +327,7 @@ const webhookInitialArgs = async ({
     projectName = `${ciEnvVars.CI_PROJECT_REPONAME}`;
   }
   return {
-    text: `${projectName} ${statusText}\n${triggerText}${prText}`,
+    text: `${projectName} ${statusText} on ${ciEnvVars.CI_PROJECT_ENVIRONMENT}\n${triggerText}${prText}`,
   };
 };
 
@@ -745,6 +746,7 @@ const resolveCIProvider = async (ciProvider?: string): Promise<CiEnvVars> => {
     CI_BUILD_NUM,
     CI_PULL_REQUEST,
     CI_PROJECT_REPONAME,
+    CI_PROJECT_ENVIRONMENT,
     CI_PROJECT_USERNAME,
     JOB_NAME,
     CIRCLE_PROJECT_ID,
@@ -790,6 +792,7 @@ const resolveCIProvider = async (ciProvider?: string): Promise<CiEnvVars> => {
           (CI_BUILD_NUM = process.env.BUILD_ID),
           (CI_PULL_REQUEST = process.env.CHANGE_ID),
           (CI_PROJECT_REPONAME = process.env.APP_NAME),
+          (CI_PROJECT_ENVIRONMENT = process.env.ENVIRONMENT),         
           (CI_PROJECT_USERNAME = arr[0]);
       }
       break;
@@ -813,6 +816,7 @@ const resolveCIProvider = async (ciProvider?: string): Promise<CiEnvVars> => {
     CI_BUILD_NUM,
     CI_PULL_REQUEST,
     CI_PROJECT_REPONAME,
+    CI_PROJECT_ENVIRONMENT,
     CI_PROJECT_USERNAME,
     JOB_NAME,
     CIRCLE_PROJECT_ID,
